@@ -1,3 +1,16 @@
+import type {
+    NoteValue,
+    SubdivisionPattern,
+    TickState,
+    TimeSignature,
+} from '../types/metronome'
+import {
+    createDefaultSubdivisionPattern,
+    getPulsesPerMeasure,
+} from '../music/rhythm'
+
+type ClickType = 'measureAccent' | 'accent' | 'normal'
+
 export class MetronomeEngine {
     private audioContext: AudioContext | null = null
     private timerId: number | null = null
@@ -6,15 +19,22 @@ export class MetronomeEngine {
     private nextBeatTime = 0
 
     private currentBeat = 0
-    private beatsPerMeasure = 4
+    private timeSignature: TimeSignature = {
+        numerator: 4,
+        denominator: 4,
+    }
+    private beatUnit: NoteValue = 'quarter'
 
     private readonly schedulerInterval = 25
     private readonly scheduleAheadTime = 0.1
 
     private subdivisions = 1
     private currentSubdivision = 0
+    private subdivisionPattern: SubdivisionPattern =
+        createDefaultSubdivisionPattern(this.subdivisions)
 
     private onBeat?: (beat: number) => void
+    private onSubdivision?: (subdivision: number) => void
 
     private currentMeasure = 0
 
@@ -30,8 +50,21 @@ export class MetronomeEngine {
         this.bpm = bpm
     }
 
+    setTimeSignature(timeSignature: TimeSignature) {
+        this.timeSignature = timeSignature
+        this.currentBeat = 0
+    }
+
+    setBeatUnit(beatUnit: NoteValue) {
+        this.beatUnit = beatUnit
+    }
+
     setOnBeat(callback: (beat: number) => void) {
         this.onBeat = callback
+    }
+
+    setOnSubdivision(callback: (subdivision: number) => void) {
+        this.onSubdivision = callback
     }
 
     setOnMeasure(callback: (measure: number) => void) {
@@ -71,12 +104,20 @@ export class MetronomeEngine {
     }
 
     setBeatsPerMeasure(beats: number) {
-        this.beatsPerMeasure = beats
-        this.currentBeat = 0
+        this.setTimeSignature({
+            ...this.timeSignature,
+            numerator: beats,
+        })
     }
 
     setSubdivisions(subdivisions: number) {
         this.subdivisions = subdivisions
+        this.subdivisionPattern =
+            createDefaultSubdivisionPattern(subdivisions)
+    }
+
+    setSubdivisionPattern(pattern: SubdivisionPattern) {
+        this.subdivisionPattern = pattern
     }
 
     private scheduler() {
@@ -89,29 +130,44 @@ export class MetronomeEngine {
             this.audioContext.currentTime + this.scheduleAheadTime
         ) {
             const isMainBeat = this.currentSubdivision === 0
-            const isAccent =
+            const isMeasureStart =
                 this.currentBeat === 0 && isMainBeat
+            const tickState =
+                this.subdivisionPattern[this.currentSubdivision] ??
+                'normal'
 
-            if (this.soundEnabled) {
+            if (this.soundEnabled && tickState !== 'mute') {
                 this.scheduleClick(
                     this.nextBeatTime,
-                    isAccent,
-                    isMainBeat,
+                    this.getClickType(tickState, isMeasureStart),
                 )
             }
+
             if (isMainBeat) {
                 this.onBeat?.(this.currentBeat)
             }
+            this.onSubdivision?.(this.currentSubdivision)
 
             this.calculateNextTick()
         }
     }
 
-    private scheduleClick(
-        time: number,
-        isAccent: boolean,
-        isMainBeat: boolean,
-    ) {
+    private getClickType(
+        tickState: TickState,
+        isMeasureStart: boolean,
+    ): ClickType {
+        if (isMeasureStart) {
+            return 'measureAccent'
+        }
+
+        if (tickState === 'accent') {
+            return 'accent'
+        }
+
+        return 'normal'
+    }
+
+    private scheduleClick(time: number, clickType: ClickType) {
         if (!this.audioContext) {
             return
         }
@@ -125,12 +181,12 @@ export class MetronomeEngine {
         let frequency = 700
         let volume = 0.4
 
-        if (isMainBeat) {
+        if (clickType === 'accent') {
             frequency = 1000
             volume = 0.7
         }
 
-        if (isAccent) {
+        if (clickType === 'measureAccent') {
             frequency = 1400
             volume = 1
         }
@@ -162,11 +218,17 @@ export class MetronomeEngine {
 
         this.currentSubdivision++
 
-        if (this.currentSubdivision >= this.subdivisions) {
-            this.currentSubdivision = 0
-            this.currentBeat++
+            if (this.currentSubdivision >= this.subdivisions) {
+                this.currentSubdivision = 0
+                this.currentBeat++
 
-            if (this.currentBeat >= this.beatsPerMeasure) {
+            if (
+                this.currentBeat >=
+                getPulsesPerMeasure(
+                    this.timeSignature,
+                    this.beatUnit,
+                )
+            ) {
                 this.currentBeat = 0
                 this.currentMeasure++
 

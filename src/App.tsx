@@ -1,15 +1,41 @@
 import { useState } from 'react'
 import './App.css'
-import type { MetronomePreset } from './types/metronome'
+import {
+  NOTE_VALUES,
+  VALID_DENOMINATORS,
+  normalizePreset,
+} from './music/rhythm'
+import type {
+  MetronomePreset,
+  NoteValue,
+  StoredMetronomePreset,
+  TickState,
+} from './types/metronome'
 import { useMetronome } from './hooks/useMetronome'
+
+const tickStateLabels: Record<TickState, string> = {
+  accent: 'Accent',
+  normal: 'Normal',
+  mute: 'Mute',
+}
+
+const tickStateSymbols: Record<TickState, string> = {
+  accent: 'A',
+  normal: 'N',
+  mute: 'X',
+}
 
 function App() {
   const {
     bpm,
     isPlaying,
+    timeSignature,
+    beatUnit,
     beatsPerMeasure,
     subdivisions,
+    subdivisionPattern,
     currentBeat,
+    currentSubdivision,
     currentMeasure,
 
     progressiveEnabled,
@@ -24,8 +50,13 @@ function App() {
     increaseBpm,
     decreaseBpm,
     changeBpm,
+    changeTimeSignatureNumerator,
+    changeTimeSignatureDenominator,
+    changeBeatUnit,
     changeBeatsPerMeasure,
     changeSubdivisions,
+    changeSubdivisionPattern,
+    toggleSubdivisionTick,
     toggleMetronome,
 
     setProgressiveEnabled,
@@ -47,15 +78,46 @@ function App() {
       return []
     }
 
-    return JSON.parse(savedPresets)
+    return (JSON.parse(savedPresets) as StoredMetronomePreset[]).map(
+      normalizePreset,
+    )
   })
   const [presetName, setPresetName] = useState('')
   const [selectedPresetId, setSelectedPresetId] = useState<string>('')
 
   function applyPreset(preset: MetronomePreset) {
     changeBpm(preset.bpm)
-    changeBeatsPerMeasure(preset.beatsPerMeasure)
+    changeTimeSignatureNumerator(preset.timeSignature.numerator)
+    changeTimeSignatureDenominator(preset.timeSignature.denominator)
+    changeBeatUnit(preset.beatUnit)
     changeSubdivisions(preset.subdivisions)
+    changeSubdivisionPattern(preset.subdivisionPattern)
+    setProgressiveEnabled(preset.progressiveEnabled)
+    setIncreaseBy(preset.increaseBy)
+    setIncreaseEveryMeasures(preset.increaseEveryMeasures)
+    setMaxBpm(preset.maxBpm)
+    setTrainingEnabled(preset.trainingEnabled)
+    setAudibleMeasures(preset.audibleMeasures)
+    setSilentMeasures(preset.silentMeasures)
+  }
+
+  function createPreset(name: string): MetronomePreset {
+    return {
+      id: crypto.randomUUID(),
+      name,
+      bpm,
+      timeSignature,
+      beatUnit,
+      subdivisions,
+      subdivisionPattern,
+      progressiveEnabled,
+      increaseBy,
+      increaseEveryMeasures,
+      maxBpm,
+      trainingEnabled,
+      audibleMeasures,
+      silentMeasures,
+    }
   }
 
   function savePreset() {
@@ -65,15 +127,7 @@ function App() {
       return
     }
 
-    const newPreset: MetronomePreset = {
-      id: crypto.randomUUID(),
-      name,
-      bpm,
-      beatsPerMeasure,
-      subdivisions,
-    }
-
-    const updatedPresets = [...presets, newPreset]
+    const updatedPresets = [...presets, createPreset(name)]
 
     setPresets(updatedPresets)
 
@@ -96,11 +150,8 @@ function App() {
       }
 
       return {
-        ...preset,
-        name: presetName.trim() || preset.name,
-        bpm,
-        beatsPerMeasure,
-        subdivisions,
+        ...createPreset(presetName.trim() || preset.name),
+        id: preset.id,
       }
     })
 
@@ -196,7 +247,7 @@ function App() {
               onClick={toggleMetronome}
             >
               <span className="play-symbol" aria-hidden="true">
-                {isPlaying ? '■' : '▶'}
+                {isPlaying ? 'STOP' : 'PLAY'}
               </span>
               {isPlaying ? 'Stop' : 'Start'}
             </button>
@@ -227,19 +278,50 @@ function App() {
 
           <div className="meter-controls">
             <label>
-              <span>Meter</span>
-              <select
-                aria-label="Time signature"
-                value={beatsPerMeasure}
+              <span>Numerator</span>
+              <input
+                aria-label="Time signature numerator"
+                type="number"
+                min={1}
+                max={64}
+                value={timeSignature.numerator}
                 onChange={(event) =>
                   changeBeatsPerMeasure(Number(event.target.value))
                 }
+              />
+            </label>
+
+            <label>
+              <span>Denominator</span>
+              <select
+                aria-label="Time signature denominator"
+                value={timeSignature.denominator}
+                onChange={(event) =>
+                  changeTimeSignatureDenominator(Number(event.target.value))
+                }
               >
-                <option value={2}>2/4</option>
-                <option value={3}>3/4</option>
-                <option value={4}>4/4</option>
-                <option value={5}>5/4</option>
-                <option value={7}>7/4</option>
+                {VALID_DENOMINATORS.map((denominator) => (
+                  <option key={denominator} value={denominator}>
+                    {denominator}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label>
+              <span>Beat Unit</span>
+              <select
+                aria-label="Beat unit"
+                value={beatUnit}
+                onChange={(event) =>
+                  changeBeatUnit(event.target.value as NoteValue)
+                }
+              >
+                {NOTE_VALUES.map((noteValue) => (
+                  <option key={noteValue.value} value={noteValue.value}>
+                    {noteValue.label}
+                  </option>
+                ))}
               </select>
             </label>
 
@@ -252,12 +334,46 @@ function App() {
                   changeSubdivisions(Number(event.target.value))
                 }
               >
-                <option value={1}>Quarter notes</option>
-                <option value={2}>Eighth notes</option>
-                <option value={3}>Triplets</option>
-                <option value={4}>Sixteenth notes</option>
+                {Array.from({ length: 8 }, (_, index) => index + 1).map(
+                  (value) => (
+                    <option key={value} value={value}>
+                      {value === 3 ? '3 - Triplet' : value}
+                    </option>
+                  ),
+                )}
               </select>
             </label>
+          </div>
+
+          <div className="pattern-editor">
+            <div className="pattern-header">
+              <span>Subdivision Pattern</span>
+              <strong>
+                {timeSignature.numerator}/{timeSignature.denominator}
+              </strong>
+            </div>
+
+            <div className="pattern-buttons">
+              {subdivisionPattern.map((tickState, index) => (
+                <button
+                  key={index}
+                  className={`pattern-button ${tickState} ${
+                    currentSubdivision === index ? 'is-current' : ''
+                  }`}
+                  type="button"
+                  onClick={() => toggleSubdivisionTick(index)}
+                  aria-label={`Subdivision ${index + 1}: ${tickStateLabels[tickState]}`}
+                >
+                  <span className="pattern-index">{index + 1}</span>
+                  <span className="pattern-symbol" aria-hidden="true">
+                    {tickStateSymbols[tickState]}
+                  </span>
+                  <span className="pattern-state">
+                    {tickStateLabels[tickState]}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
 
           <button className="tap-control" type="button" onClick={tapTempo}>

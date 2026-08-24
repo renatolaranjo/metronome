@@ -254,7 +254,7 @@ button:disabled {
 
 .meter-controls {
   display: grid;
-  grid-template-columns: minmax(120px, 1fr) minmax(190px, 1.4fr);
+  grid-template-columns: minmax(110px, 1fr) minmax(130px, 1fr);
   gap: 14px;
   width: min(100%, 520px);
 }
@@ -313,6 +313,110 @@ input:focus {
   border: 1px solid rgba(255, 189, 99, 0.38);
   background: rgba(255, 189, 99, 0.08);
   color: #ffd796;
+  text-transform: uppercase;
+}
+
+.pattern-editor {
+  display: grid;
+  gap: 12px;
+  width: min(100%, 560px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 14px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.pattern-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #f1e7da;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pattern-header strong {
+  color: #ffbd63;
+}
+
+.pattern-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(74px, 1fr));
+  gap: 10px;
+}
+
+.pattern-button {
+  display: grid;
+  justify-items: center;
+  gap: 7px;
+  min-height: 94px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 10px 8px;
+  background: rgba(255, 255, 255, 0.045);
+  color: #f4efe6;
+}
+
+.pattern-button.is-current {
+  outline: 2px solid rgba(255, 189, 99, 0.34);
+  outline-offset: 2px;
+}
+
+.pattern-button.accent {
+  border-color: rgba(255, 189, 99, 0.52);
+  background:
+    linear-gradient(180deg, rgba(255, 189, 99, 0.18), rgba(255, 189, 99, 0.06)),
+    rgba(255, 255, 255, 0.04);
+}
+
+.pattern-button.normal {
+  color: #d9d0c3;
+}
+
+.pattern-button.mute {
+  border-style: dashed;
+  color: #80776b;
+  opacity: 0.78;
+}
+
+.pattern-index {
+  color: #a99f91;
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+
+.pattern-symbol {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.pattern-button.accent .pattern-symbol {
+  background: #ffbd63;
+  color: #18110a;
+  box-shadow: 0 0 18px rgba(255, 189, 99, 0.42);
+}
+
+.pattern-button.normal .pattern-symbol {
+  border: 2px solid #a99f91;
+}
+
+.pattern-button.mute .pattern-symbol {
+  border: 2px solid #80776b;
+  text-decoration: line-through;
+}
+
+.pattern-state {
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 

@@ -17,59 +17,61 @@ If you are developing a production application, we recommend updating the config
 
 ```js
 export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+  # Metronome
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+  Metrônomo web construido com React, TypeScript e Vite. A aplicação usa a Web Audio API para gerar cliques precisos no navegador e oferece recursos para prática musical.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+  ## Recursos
 
-```
+  - Controle de tempo entre 20 e 300 BPM, com ajuste manual e Tap Tempo.
+  - Configuração de fórmula de compasso, unidade de tempo e de 1 a 8 subdivisões.
+  - Editor de padrão de subdivisões com acentos, cliques normais e silêncios.
+  - Indicadores visuais do tempo, subdivisão e compasso atual.
+  - Modo de tempo progressivo, com aumento automático do BPM até um limite.
+  - Modo de treino, alternando compassos audíveis e silenciosos.
+  - Criação, seleção, atualização e exclusão de presets.
+  - Presets salvos localmente no navegador por meio do `localStorage`.
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+  ## Requisitos
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+  - Node.js 20.19+ ou 22+
+  - npm
+  - Um navegador com suporte a Web Audio API
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+  ## Executar localmente
 
-```
+  ```bash
+  npm install
+  npm run dev
+  ```
+
+  Abra a URL exibida pelo Vite, normalmente `http://localhost:5173`.
+
+  O áudio é iniciado quando o metrônomo é ativado, seguindo as políticas de autoplay do navegador.
+
+  ## Scripts
+
+  | Comando | Descrição |
+  | --- | --- |
+  | `npm run dev` | Inicia o servidor de desenvolvimento com hot reload. |
+  | `npm run build` | Verifica os tipos e gera o build de produção em `dist/`. |
+  | `npm run preview` | Serve localmente o build de produção. |
+  | `npm run lint` | Executa o ESLint. |
+  | `npm test` | Executa os testes uma vez com Vitest. |
+  | `npm run prepare` | Inicializa o Husky no checkout local. |
+
+  ## Qualidade e CI
+
+  O Husky executa `npm run lint` e `npm test` antes de cada commit por meio de `.husky/pre-commit`.
+
+  A pipeline do GitHub Actions em `.github/workflows/ci.yml` roda em pushes para `main` e em pull requests. Ela instala as dependências com `npm ci` e executa lint, testes e build.
+
+  ## Estrutura principal
+
+  ```text
+  src/
+    audio/       Motor de áudio do metrônomo e testes relacionados
+    hooks/       Estado e controles do metrônomo
+    types/       Tipos compartilhados
+    App.tsx      Interface principal
+  ```

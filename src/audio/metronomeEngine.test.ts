@@ -57,6 +57,54 @@ describe('MetronomeEngine', () => {
     engine.stop()
   })
 
+  it('keeps muted subdivisions on the timeline without scheduling audio', () => {
+    const onBeat = vi.fn()
+    const engine = new MetronomeEngine()
+
+    engine.setBpm(60)
+    engine.setSubdivisions(3)
+    engine.setSubdivisionPattern(['accent', 'mute', 'mute'])
+    engine.setOnBeat(onBeat)
+    engine.start()
+
+    const context = MockAudioContext.instances[0]
+
+    context.currentTime = 0.7
+    vi.advanceTimersByTime(25)
+
+    expect(context.oscillators).toHaveLength(1)
+    expect(onBeat).toHaveBeenCalledTimes(1)
+
+    context.currentTime = 1
+    vi.advanceTimersByTime(25)
+
+    expect(context.oscillators).toHaveLength(2)
+    expect(onBeat).toHaveBeenCalledTimes(2)
+
+    engine.stop()
+  })
+
+  it('uses a secondary accent for accented pattern ticks outside the measure start', () => {
+    const engine = new MetronomeEngine()
+
+    engine.setBpm(60)
+    engine.setSubdivisions(4)
+    engine.setSubdivisionPattern(['accent', 'normal', 'accent', 'normal'])
+    engine.start()
+
+    const context = MockAudioContext.instances[0]
+
+    context.currentTime = 0.6
+    vi.advanceTimersByTime(25)
+
+    expect(context.oscillators[2].frequency.setValueAtTime).toHaveBeenCalledWith(
+      1000,
+      0.5,
+    )
+
+    engine.stop()
+  })
+
   it('reports beats and completed measures according to the configured meter', () => {
     const onBeat = vi.fn()
     const onMeasure = vi.fn()

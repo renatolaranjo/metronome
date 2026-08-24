@@ -1,5 +1,16 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { MetronomeEngine } from '../audio/metronomeEngine'
+import {
+  createDefaultSubdivisionPattern,
+  getNextTickState,
+  getPulsesPerMeasure,
+  resizeSubdivisionPattern,
+} from '../music/rhythm'
+import type {
+  NoteValue,
+  SubdivisionPattern,
+  TimeSignature,
+} from '../types/metronome'
 
 const metronome = new MetronomeEngine()
 
@@ -7,10 +18,17 @@ export function useMetronome() {
   const [bpm, setBpm] = useState(80)
   const [isPlaying, setIsPlaying] = useState(false)
 
-  const [beatsPerMeasure, setBeatsPerMeasure] = useState(4)
+  const [timeSignature, setTimeSignature] = useState<TimeSignature>({
+    numerator: 4,
+    denominator: 4,
+  })
+  const [beatUnit, setBeatUnit] = useState<NoteValue>('quarter')
   const [subdivisions, setSubdivisions] = useState(1)
+  const [subdivisionPattern, setSubdivisionPattern] =
+    useState<SubdivisionPattern>(() => createDefaultSubdivisionPattern(1))
 
   const [currentBeat, setCurrentBeat] = useState(0)
+  const [currentSubdivision, setCurrentSubdivision] = useState(0)
   const [currentMeasure, setCurrentMeasure] = useState(0)
 
   const [progressiveEnabled, setProgressiveEnabled] = useState(false)
@@ -23,9 +41,18 @@ export function useMetronome() {
   const [silentMeasures, setSilentMeasures] = useState(2)
   const [, setTapTimes] = useState<number[]>([])
 
+  const beatsPerMeasure = useMemo(
+    () => getPulsesPerMeasure(timeSignature, beatUnit),
+    [timeSignature, beatUnit],
+  )
+
   useEffect(() => {
     metronome.setOnBeat((beat) => {
       setCurrentBeat(beat)
+    })
+
+    metronome.setOnSubdivision((subdivision) => {
+      setCurrentSubdivision(subdivision)
     })
 
     metronome.setOnMeasure((measure) => {
@@ -71,6 +98,13 @@ export function useMetronome() {
     silentMeasures,
   ])
 
+  useEffect(() => {
+    metronome.setTimeSignature(timeSignature)
+    metronome.setBeatUnit(beatUnit)
+    metronome.setSubdivisions(subdivisions)
+    metronome.setSubdivisionPattern(subdivisionPattern)
+  }, [timeSignature, beatUnit, subdivisions, subdivisionPattern])
+
   function increaseBpm() {
     setBpm((currentBpm) => {
       const newBpm = Math.min(300, currentBpm + 1)
@@ -96,14 +130,53 @@ export function useMetronome() {
     metronome.setBpm(value)
   }
 
+  function changeTimeSignatureNumerator(value: number) {
+    setTimeSignature((currentTimeSignature) => ({
+      ...currentTimeSignature,
+      numerator: Math.max(1, Math.round(value)),
+    }))
+    setCurrentBeat(0)
+  }
+
+  function changeTimeSignatureDenominator(value: number) {
+    setTimeSignature((currentTimeSignature) => ({
+      ...currentTimeSignature,
+      denominator: value,
+    }))
+    setCurrentBeat(0)
+  }
+
+  function changeBeatUnit(value: NoteValue) {
+    setBeatUnit(value)
+    setCurrentBeat(0)
+  }
+
   function changeBeatsPerMeasure(value: number) {
-    setBeatsPerMeasure(value)
-    metronome.setBeatsPerMeasure(value)
+    changeTimeSignatureNumerator(value)
   }
 
   function changeSubdivisions(value: number) {
-    setSubdivisions(value)
-    metronome.setSubdivisions(value)
+    const newSubdivisions = Math.min(8, Math.max(1, Math.round(value)))
+
+    setSubdivisions(newSubdivisions)
+    setCurrentSubdivision(0)
+    setSubdivisionPattern((currentPattern) =>
+      resizeSubdivisionPattern(currentPattern, newSubdivisions),
+    )
+  }
+
+  function changeSubdivisionPattern(pattern: SubdivisionPattern) {
+    setSubdivisionPattern(
+      resizeSubdivisionPattern(pattern, pattern.length),
+    )
+  }
+
+  function toggleSubdivisionTick(index: number) {
+    setSubdivisionPattern((currentPattern) =>
+      currentPattern.map((state, currentIndex) =>
+        currentIndex === index ? getNextTickState(state) : state,
+      ),
+    )
   }
 
   function toggleMetronome() {
@@ -112,17 +185,21 @@ export function useMetronome() {
 
       setIsPlaying(false)
       setCurrentBeat(0)
+      setCurrentSubdivision(0)
       setCurrentMeasure(0)
 
       return
     }
 
     metronome.setBpm(bpm)
-    metronome.setBeatsPerMeasure(beatsPerMeasure)
+    metronome.setTimeSignature(timeSignature)
+    metronome.setBeatUnit(beatUnit)
     metronome.setSubdivisions(subdivisions)
+    metronome.setSubdivisionPattern(subdivisionPattern)
     metronome.setSoundEnabled(true)
 
     setCurrentBeat(0)
+    setCurrentSubdivision(0)
     setCurrentMeasure(0)
 
     metronome.start()
@@ -130,67 +207,71 @@ export function useMetronome() {
   }
 
   function tapTempo() {
-  const now = performance.now()
+    const now = performance.now()
 
-  setTapTimes((currentTapTimes) => {
-    if (currentTapTimes.length > 0) {
-      const lastTap =
-        currentTapTimes[currentTapTimes.length - 1]
+    setTapTimes((currentTapTimes) => {
+      if (currentTapTimes.length > 0) {
+        const lastTap =
+          currentTapTimes[currentTapTimes.length - 1]
 
-      const timeSinceLastTap = now - lastTap
+        const timeSinceLastTap = now - lastTap
 
-      if (timeSinceLastTap > 2000) {
-        return [now]
+        if (timeSinceLastTap > 2000) {
+          return [now]
+        }
       }
-    }
 
-    const newTapTimes = [
-      ...currentTapTimes,
-      now,
-    ].slice(-6)
+      const newTapTimes = [
+        ...currentTapTimes,
+        now,
+      ].slice(-6)
 
-    if (newTapTimes.length < 2) {
-      return newTapTimes
-    }
+      if (newTapTimes.length < 2) {
+        return newTapTimes
+      }
 
-    const intervals: number[] = []
+      const intervals: number[] = []
 
-    for (let i = 1; i < newTapTimes.length; i++) {
-      intervals.push(
-        newTapTimes[i] - newTapTimes[i - 1],
+      for (let i = 1; i < newTapTimes.length; i++) {
+        intervals.push(
+          newTapTimes[i] - newTapTimes[i - 1],
+        )
+      }
+
+      const averageInterval =
+        intervals.reduce(
+          (sum, interval) => sum + interval,
+          0,
+        ) / intervals.length
+
+      const calculatedBpm = Math.round(
+        60000 / averageInterval,
       )
-    }
 
-    const averageInterval =
-      intervals.reduce(
-        (sum, interval) => sum + interval,
-        0,
-      ) / intervals.length
+      const limitedBpm = Math.min(
+        300,
+        Math.max(20, calculatedBpm),
+      )
 
-    const calculatedBpm = Math.round(
-      60000 / averageInterval,
-    )
+      setBpm(limitedBpm)
+      metronome.setBpm(limitedBpm)
 
-    const limitedBpm = Math.min(
-      300,
-      Math.max(20, calculatedBpm),
-    )
-
-    setBpm(limitedBpm)
-    metronome.setBpm(limitedBpm)
-
-    return newTapTimes
-  })
-}
+      return newTapTimes
+    })
+  }
 
   return {
     bpm,
     isPlaying,
 
+    timeSignature,
+    beatUnit,
     beatsPerMeasure,
     subdivisions,
+    subdivisionPattern,
 
     currentBeat,
+    currentSubdivision,
     currentMeasure,
 
     progressiveEnabled,
@@ -205,8 +286,13 @@ export function useMetronome() {
     increaseBpm,
     decreaseBpm,
     changeBpm,
+    changeTimeSignatureNumerator,
+    changeTimeSignatureDenominator,
+    changeBeatUnit,
     changeBeatsPerMeasure,
     changeSubdivisions,
+    changeSubdivisionPattern,
+    toggleSubdivisionTick,
     toggleMetronome,
 
     setProgressiveEnabled,
