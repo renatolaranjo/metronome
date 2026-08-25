@@ -246,9 +246,10 @@ function App() {
               type="button"
               onClick={toggleMetronome}
             >
-              <span className="play-symbol" aria-hidden="true">
-                {isPlaying ? 'STOP' : 'PLAY'}
-              </span>
+              <span
+                className={`play-icon ${isPlaying ? 'pause' : 'play'}`}
+                aria-hidden="true"
+              />
               {isPlaying ? 'Stop' : 'Start'}
             </button>
 
@@ -276,73 +277,82 @@ function App() {
             ))}
           </div>
 
-          <div className="meter-controls">
-            <label>
-              <span>Numerator</span>
-              <input
-                aria-label="Time signature numerator"
-                type="number"
-                min={1}
-                max={64}
-                value={timeSignature.numerator}
-                onChange={(event) =>
-                  changeBeatsPerMeasure(Number(event.target.value))
-                }
-              />
-            </label>
+          <div className="rhythm-config">
+            <div className="rhythm-config-header">
+              <span>Tempo Setup</span>
+              <strong>
+                {timeSignature.numerator}/{timeSignature.denominator}
+              </strong>
+            </div>
 
-            <label>
-              <span>Denominator</span>
-              <select
-                aria-label="Time signature denominator"
-                value={timeSignature.denominator}
-                onChange={(event) =>
-                  changeTimeSignatureDenominator(Number(event.target.value))
-                }
-              >
-                {VALID_DENOMINATORS.map((denominator) => (
-                  <option key={denominator} value={denominator}>
-                    {denominator}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <div className="meter-controls">
+              <label>
+                <span>Numerator</span>
+                <input
+                  aria-label="Time signature numerator"
+                  type="number"
+                  min={1}
+                  max={64}
+                  value={timeSignature.numerator}
+                  onChange={(event) =>
+                    changeBeatsPerMeasure(Number(event.target.value))
+                  }
+                />
+              </label>
 
-            <label>
-              <span>Beat Unit</span>
-              <select
-                aria-label="Beat unit"
-                value={beatUnit}
-                onChange={(event) =>
-                  changeBeatUnit(event.target.value as NoteValue)
-                }
-              >
-                {NOTE_VALUES.map((noteValue) => (
-                  <option key={noteValue.value} value={noteValue.value}>
-                    {noteValue.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label>
-              <span>Subdivision</span>
-              <select
-                aria-label="Subdivision"
-                value={subdivisions}
-                onChange={(event) =>
-                  changeSubdivisions(Number(event.target.value))
-                }
-              >
-                {Array.from({ length: 8 }, (_, index) => index + 1).map(
-                  (value) => (
-                    <option key={value} value={value}>
-                      {value === 3 ? '3 - Triplet' : value}
+              <label>
+                <span>Denominator</span>
+                <select
+                  aria-label="Time signature denominator"
+                  value={timeSignature.denominator}
+                  onChange={(event) =>
+                    changeTimeSignatureDenominator(Number(event.target.value))
+                  }
+                >
+                  {VALID_DENOMINATORS.map((denominator) => (
+                    <option key={denominator} value={denominator}>
+                      {denominator}
                     </option>
-                  ),
-                )}
-              </select>
-            </label>
+                  ))}
+                </select>
+              </label>
+
+              <label>
+                <span>Beat Unit</span>
+                <select
+                  aria-label="Beat unit"
+                  value={beatUnit}
+                  onChange={(event) =>
+                    changeBeatUnit(event.target.value as NoteValue)
+                  }
+                >
+                  {NOTE_VALUES.map((noteValue) => (
+                    <option key={noteValue.value} value={noteValue.value}>
+                      {noteValue.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label>
+                <span>Subdivision</span>
+                <select
+                  aria-label="Subdivision"
+                  value={subdivisions}
+                  onChange={(event) =>
+                    changeSubdivisions(Number(event.target.value))
+                  }
+                >
+                  {Array.from({ length: 8 }, (_, index) => index + 1).map(
+                    (value) => (
+                      <option key={value} value={value}>
+                        {value === 3 ? '3 - Triplet' : value}
+                      </option>
+                    ),
+                  )}
+                </select>
+              </label>
+            </div>
           </div>
 
           <div className="pattern-editor">
@@ -382,7 +392,11 @@ function App() {
         </div>
 
         <div className="advanced-panels">
-          <details className="settings-panel">
+          <details
+            className={`settings-panel mode-panel ${
+              progressiveEnabled ? 'is-enabled' : 'is-disabled'
+            }`}
+          >
             <summary>
               <span>Progressive Tempo</span>
               <strong>{progressiveEnabled ? 'On' : 'Off'}</strong>
@@ -443,7 +457,11 @@ function App() {
             </div>
           </details>
 
-          <details className="settings-panel">
+          <details
+            className={`settings-panel mode-panel ${
+              trainingEnabled ? 'is-enabled' : 'is-disabled'
+            }`}
+          >
             <summary>
               <span>Training Mode</span>
               <strong>{trainingEnabled ? 'On' : 'Off'}</strong>
