@@ -419,7 +419,7 @@ button:disabled {
 .note-value-option.is-selected .note-icon-badge {
   border-color: rgba(255, 189, 99, 0.45);
   background: rgba(255, 189, 99, 0.18);
-  color: #ffc36d;
+  color: #f5a623;
   box-shadow: 0 0 12px rgba(255, 189, 99, 0.3);
 }
 
@@ -456,34 +456,34 @@ button:disabled {
   height: 30px;
   margin: 0 auto;
   color: currentColor;
-  font-family:
-    'Segoe UI Symbol',
-    'Apple Symbols',
-    'Noto Music',
-    'Noto Sans Symbols 2',
-    sans-serif;
-  font-size: 1.62rem;
-  font-weight: 400;
-  line-height: 30px;
-  text-align: center;
+  fill: none;
+  overflow: visible;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
-.note-symbol-half,
-.note-symbol-quarter,
-.note-symbol-eighth,
-.note-symbol-sixteenth,
 .note-symbol-thirtySecond,
 .note-symbol-sixtyFourth {
-  font-size: 1.74rem;
-  transform: translateY(-1px);
+  height: 27px;
+  transform: translateY(1px);
 }
 
-.note-symbol-whole {
-  font-size: 1.66rem;
+.note-symbol ellipse {
+  stroke-width: 2.2;
 }
 
-.note-symbol-sixtyFourth {
-  transform: translateY(-2px);
+.note-symbol .note-head-filled {
+  fill: currentColor;
+}
+
+.note-stem {
+  stroke-width: 2.4;
+}
+
+.note-flag {
+  fill: none;
+  stroke-width: 2.15;
 }
 
 select,

@@ -7,6 +7,7 @@ import {
 } from './music/rhythm'
 import type {
   MetronomePreset,
+  NoteValue,
   StoredMetronomePreset,
   TickState,
 } from './types/metronome'
@@ -22,6 +23,50 @@ const tickStateSymbols: Record<TickState, string> = {
   accent: 'A',
   normal: 'N',
   mute: 'X',
+}
+
+function NoteSymbol({ value }: { value: NoteValue }) {
+  const hasStem = value !== 'whole'
+  const flags = {
+    whole: 0,
+    half: 0,
+    quarter: 0,
+    eighth: 1,
+    sixteenth: 2,
+    thirtySecond: 3,
+    sixtyFourth: 4,
+  }[value]
+  const isFilled = !['whole', 'half'].includes(value)
+
+  return (
+    <svg
+      className={`note-symbol note-symbol-${value}`}
+      viewBox="0 0 32 32"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <ellipse
+        className={isFilled ? 'note-head-filled' : undefined}
+        cx="12"
+        cy="23"
+        rx="6.5"
+        ry="4.4"
+        transform="rotate(-22 12 23)"
+      />
+      {hasStem && <path className="note-stem" d="M17 21.5V5" />}
+      {Array.from({ length: flags }, (_, index) => {
+        const y = 5 + index * 4.5
+
+        return (
+          <path
+            key={index}
+            className="note-flag"
+            d={`M17 ${y}C25 ${y + 1.2} 26 ${y + 7.2} 20.2 ${y + 9.8}`}
+          />
+        )
+      })}
+    </svg>
+  )
 }
 
 function App() {
@@ -369,12 +414,7 @@ function App() {
                       onClick={() => changeBeatUnit(noteValue.value)}
                     >
                       <div className="note-icon-badge">
-                        <span
-                          className={`note-symbol note-symbol-${noteValue.value}`}
-                          aria-hidden="true"
-                        >
-                          {noteValue.symbol}
-                        </span>
+                        <NoteSymbol value={noteValue.value} />
                       </div>
                       <div className="note-text-group">
                         <span className="note-fraction">1/{noteValue.denominator}</span>
