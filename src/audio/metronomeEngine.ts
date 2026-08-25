@@ -10,6 +10,13 @@ import {
 } from '../music/rhythm'
 
 type ClickType = 'measureAccent' | 'accent' | 'normal'
+type AudioContextConstructor = new () => AudioContext
+
+declare global {
+    interface Window {
+        webkitAudioContext?: AudioContextConstructor
+    }
+}
 
 export class MetronomeEngine {
     private audioContext: AudioContext | null = null
@@ -71,17 +78,17 @@ export class MetronomeEngine {
         this.onMeasure = callback
     }
 
-    start() {
+    async start() {
         if (this.timerId !== null) {
             return
         }
 
         if (!this.audioContext) {
-            this.audioContext = new AudioContext()
+            this.audioContext = this.createAudioContext()
         }
 
         if (this.audioContext.state === 'suspended') {
-            this.audioContext.resume()
+            await this.audioContext.resume()
         }
 
         this.currentBeat = 0
@@ -94,6 +101,17 @@ export class MetronomeEngine {
         this.timerId = window.setInterval(() => {
             this.scheduler()
         }, this.schedulerInterval)
+    }
+
+    private createAudioContext() {
+        const BrowserAudioContext =
+            window.AudioContext ?? window.webkitAudioContext
+
+        if (!BrowserAudioContext) {
+            throw new Error('Web Audio API is not supported')
+        }
+
+        return new BrowserAudioContext()
     }
 
     stop() {

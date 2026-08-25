@@ -179,7 +179,7 @@ export function useMetronome() {
     )
   }
 
-  function toggleMetronome() {
+  async function toggleMetronome() {
     if (isPlaying) {
       metronome.stop()
 
@@ -202,7 +202,7 @@ export function useMetronome() {
     setCurrentSubdivision(0)
     setCurrentMeasure(0)
 
-    metronome.start()
+    await metronome.start()
     setIsPlaying(true)
   }
 
