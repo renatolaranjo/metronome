@@ -7,7 +7,6 @@ import {
 } from './music/rhythm'
 import type {
   MetronomePreset,
-  NoteValue,
   StoredMetronomePreset,
   TickState,
 } from './types/metronome'
@@ -84,6 +83,17 @@ function App() {
   })
   const [presetName, setPresetName] = useState('')
   const [selectedPresetId, setSelectedPresetId] = useState<string>('')
+  const hasPresetName = presetName.trim().length > 0
+  const hasDuplicatePresetName =
+    hasPresetName &&
+    presets.some(
+      (preset) =>
+        preset.id !== selectedPresetId &&
+        preset.name.trim().toLocaleLowerCase() ===
+          presetName.trim().toLocaleLowerCase(),
+    )
+  const canSavePreset = hasPresetName && !hasDuplicatePresetName
+  const canUpdatePreset = Boolean(selectedPresetId) && !hasDuplicatePresetName
 
   function applyPreset(preset: MetronomePreset) {
     changeBpm(preset.bpm)
@@ -127,6 +137,15 @@ function App() {
       return
     }
 
+    if (
+      presets.some(
+        (preset) =>
+          preset.name.trim().toLocaleLowerCase() === name.toLocaleLowerCase(),
+      )
+    ) {
+      return
+    }
+
     const updatedPresets = [...presets, createPreset(name)]
 
     setPresets(updatedPresets)
@@ -144,13 +163,26 @@ function App() {
       return
     }
 
+    const name = presetName.trim()
+
+    if (
+      name &&
+      presets.some(
+        (preset) =>
+          preset.id !== selectedPresetId &&
+          preset.name.trim().toLocaleLowerCase() === name.toLocaleLowerCase(),
+      )
+    ) {
+      return
+    }
+
     const updatedPresets = presets.map((preset) => {
       if (preset.id !== selectedPresetId) {
         return preset
       }
 
       return {
-        ...createPreset(presetName.trim() || preset.name),
+        ...createPreset(name || preset.name),
         id: preset.id,
       }
     })
@@ -222,8 +254,8 @@ function App() {
         </header>
 
         <div className="tempo-stage">
-          <p className="measure-counter">
-            Measure <span>{currentMeasure}</span>
+          <p className={`measure-counter ${isPlaying ? 'is-running' : ''}`}>
+            Measure <span key={currentMeasure}>{currentMeasure}</span>
           </p>
 
           <h2 className="tempo-readout" aria-label={`${bpm} BPM`}>
@@ -317,22 +349,41 @@ function App() {
                 </select>
               </label>
 
-              <label>
-                <span>Beat Unit</span>
-                <select
+              <div className="beat-unit-field">
+                <span className="field-title">Beat Unit</span>
+                <div
+                  className="note-value-picker"
+                  role="radiogroup"
                   aria-label="Beat unit"
-                  value={beatUnit}
-                  onChange={(event) =>
-                    changeBeatUnit(event.target.value as NoteValue)
-                  }
                 >
                   {NOTE_VALUES.map((noteValue) => (
-                    <option key={noteValue.value} value={noteValue.value}>
-                      {noteValue.label}
-                    </option>
+                    <button
+                      key={noteValue.value}
+                      className={`note-value-option ${
+                        beatUnit === noteValue.value ? 'is-selected' : ''
+                      }`}
+                      type="button"
+                      role="radio"
+                      aria-checked={beatUnit === noteValue.value}
+                      aria-label={noteValue.label}
+                      onClick={() => changeBeatUnit(noteValue.value)}
+                    >
+                      <div className="note-icon-badge">
+                        <span
+                          className={`note-symbol note-symbol-${noteValue.value}`}
+                          aria-hidden="true"
+                        >
+                          {noteValue.symbol}
+                        </span>
+                      </div>
+                      <div className="note-text-group">
+                        <span className="note-fraction">1/{noteValue.denominator}</span>
+                        <span className="note-name">{noteValue.label}</span>
+                      </div>
+                    </button>
                   ))}
-                </select>
-              </label>
+                </div>
+              </div>
 
               <label>
                 <span>Subdivision</span>
@@ -513,20 +564,38 @@ function App() {
 
             <div className="settings-content preset-content">
               <label className="preset-name-field">
-                <span>Name</span>
+                <span className="sr-only">Name</span>
                 <input
                   type="text"
-                  placeholder="Preset name"
+                  placeholder="Preset name..."
+                  aria-label="Preset name"
+                  aria-invalid={hasDuplicatePresetName}
+                  aria-describedby={
+                    hasDuplicatePresetName ? 'preset-name-error' : undefined
+                  }
                   value={presetName}
                   onChange={(event) => setPresetName(event.target.value)}
                 />
               </label>
 
+              {hasDuplicatePresetName && (
+                <p
+                  className="preset-validation"
+                  id="preset-name-error"
+                  role="alert"
+                >
+                  A preset with this name already exists.
+                </p>
+              )}
+
               <div className="preset-actions">
                 <button
-                  className="primary-action"
+                  className={`primary-action preset-save-action ${
+                    canSavePreset ? 'is-ready' : 'is-idle'
+                  }`}
                   type="button"
                   onClick={savePreset}
+                  disabled={!canSavePreset}
                 >
                   Save preset
                 </button>
@@ -535,7 +604,7 @@ function App() {
                   className="secondary-action"
                   type="button"
                   onClick={updatePreset}
-                  disabled={!selectedPresetId}
+                  disabled={!canUpdatePreset}
                 >
                   Update preset
                 </button>

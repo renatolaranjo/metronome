@@ -13,14 +13,25 @@ export const NOTE_VALUES: Array<{
   value: NoteValue
   label: string
   denominator: number
+  symbol: string
 }> = [
-  { value: 'whole', label: 'Whole note', denominator: 1 },
-  { value: 'half', label: 'Half note', denominator: 2 },
-  { value: 'quarter', label: 'Quarter note', denominator: 4 },
-  { value: 'eighth', label: 'Eighth note', denominator: 8 },
-  { value: 'sixteenth', label: 'Sixteenth note', denominator: 16 },
-  { value: 'thirtySecond', label: 'Thirty-second', denominator: 32 },
-  { value: 'sixtyFourth', label: 'Sixty-fourth', denominator: 64 },
+  { value: 'whole', label: 'Whole note', denominator: 1, symbol: '𝅝' },
+  { value: 'half', label: 'Half note', denominator: 2, symbol: '𝅗𝅥' },
+  { value: 'quarter', label: 'Quarter note', denominator: 4, symbol: '𝅘𝅥' },
+  { value: 'eighth', label: 'Eighth note', denominator: 8, symbol: '𝅘𝅥𝅮' },
+  { value: 'sixteenth', label: 'Sixteenth note', denominator: 16, symbol: '𝅘𝅥𝅯' },
+  {
+    value: 'thirtySecond',
+    label: 'Thirty-second',
+    denominator: 32,
+    symbol: '𝅘𝅥𝅰',
+  },
+  {
+    value: 'sixtyFourth',
+    label: 'Sixty-fourth',
+    denominator: 64,
+    symbol: '𝅘𝅥𝅱',
+  },
 ]
 
 const TICK_STATE_SEQUENCE: TickState[] = ['normal', 'accent', 'mute']

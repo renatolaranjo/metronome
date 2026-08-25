@@ -35,7 +35,10 @@ describe('App', () => {
     expect(screen.getByRole('button', { name: 'Start' })).toBeEnabled()
     expect(screen.getByLabelText('Time signature numerator')).toHaveValue(4)
     expect(screen.getByLabelText('Time signature denominator')).toHaveValue('4')
-    expect(screen.getByLabelText('Beat unit')).toHaveValue('quarter')
+    expect(screen.getByRole('radio', { name: 'Quarter note' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    )
     expect(screen.getByLabelText('Subdivision')).toHaveValue('1')
     expect(
       screen.getByRole('button', { name: 'Subdivision 1: Accent' }),
@@ -101,12 +104,12 @@ describe('App', () => {
       target: { value: '7' },
     })
     await user.selectOptions(screen.getByLabelText('Time signature denominator'), '8')
-    await user.selectOptions(screen.getByLabelText('Beat unit'), 'eighth')
+    await user.click(screen.getByRole('radio', { name: 'Eighth note' }))
     await user.selectOptions(screen.getByLabelText('Subdivision'), '4')
     await user.click(screen.getByRole('button', { name: 'Subdivision 3: Normal' }))
     await user.click(screen.getByRole('button', { name: 'Subdivision 4: Normal' }))
     await user.click(screen.getByRole('button', { name: 'Subdivision 4: Accent' }))
-    await user.type(screen.getByPlaceholderText('Preset name'), 'Seven')
+    await user.type(screen.getByPlaceholderText('Preset name...'), 'Seven')
     await user.click(screen.getByRole('button', { name: 'Save preset' }))
 
     expect(screen.getByRole('option', { name: 'Seven' })).toBeInTheDocument()
@@ -143,11 +146,14 @@ describe('App', () => {
     expect(screen.getByRole('heading', { name: '81 BPM' })).toBeVisible()
     expect(screen.getByLabelText('Time signature numerator')).toHaveValue(7)
     expect(screen.getByLabelText('Time signature denominator')).toHaveValue('8')
-    expect(screen.getByLabelText('Beat unit')).toHaveValue('eighth')
-    expect(screen.getByPlaceholderText('Preset name')).toHaveValue('Seven')
+    expect(screen.getByRole('radio', { name: 'Eighth note' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    )
+    expect(screen.getByPlaceholderText('Preset name...')).toHaveValue('Seven')
 
-    await user.clear(screen.getByPlaceholderText('Preset name'))
-    await user.type(screen.getByPlaceholderText('Preset name'), 'Updated')
+    await user.clear(screen.getByPlaceholderText('Preset name...'))
+    await user.type(screen.getByPlaceholderText('Preset name...'), 'Updated')
     await user.click(screen.getByRole('button', { name: 'Update preset' }))
 
     expect(screen.getByRole('option', { name: 'Updated' })).toBeInTheDocument()
@@ -158,6 +164,47 @@ describe('App', () => {
       screen.queryByRole('option', { name: 'Updated' }),
     ).not.toBeInTheDocument()
     expect(localStorage.getItem('metronome-presets')).toBe('[]')
+  })
+
+  it('prevents duplicate preset names when saving or updating', async () => {
+    const user = userEvent.setup()
+
+    vi.stubGlobal('crypto', {
+      randomUUID: vi
+        .fn()
+        .mockReturnValueOnce('preset-1')
+        .mockReturnValueOnce('preset-2'),
+    })
+
+    render(<App />)
+
+    await user.type(screen.getByPlaceholderText('Preset name...'), 'Groove')
+    await user.click(screen.getByRole('button', { name: 'Save preset' }))
+
+    await user.type(screen.getByPlaceholderText('Preset name...'), ' groove ')
+
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'A preset with this name already exists.',
+    )
+    expect(screen.getByRole('button', { name: 'Save preset' })).toBeDisabled()
+    expect(
+      JSON.parse(localStorage.getItem('metronome-presets') ?? '[]'),
+    ).toHaveLength(1)
+
+    await user.clear(screen.getByPlaceholderText('Preset name...'))
+    await user.type(screen.getByPlaceholderText('Preset name...'), 'Backbeat')
+    await user.click(screen.getByRole('button', { name: 'Save preset' }))
+
+    await user.selectOptions(screen.getByLabelText('Preset'), 'preset-2')
+    await user.clear(screen.getByPlaceholderText('Preset name...'))
+    await user.type(screen.getByPlaceholderText('Preset name...'), 'GROOVE')
+
+    expect(screen.getByRole('button', { name: 'Update preset' })).toBeDisabled()
+    expect(
+      JSON.parse(localStorage.getItem('metronome-presets') ?? '[]').map(
+        (preset: { name: string }) => preset.name,
+      ),
+    ).toEqual(['Groove', 'Backbeat'])
   })
 
   it('loads old presets with safe rhythm defaults', async () => {
