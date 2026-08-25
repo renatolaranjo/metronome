@@ -49,8 +49,8 @@ function NoteSymbol({ value }: { value: NoteValue }) {
         className={isFilled ? 'note-head-filled' : undefined}
         cx="12"
         cy="23"
-        rx="6.5"
-        ry="4.4"
+        rx="5.4"
+        ry="3.7"
         transform="rotate(-22 12 23)"
       />
       {hasStem && <path className="note-stem" d="M17 21.5V5" />}
