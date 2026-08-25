@@ -1,0 +1,187 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Studio Background Gradient (Matches App Shell & Theme) -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e1c19"/>
+      <stop offset="50%" stop-color="#121110"/>
+      <stop offset="100%" stop-color="#090909"/>
+    </linearGradient>
+
+    <!-- Ambient Radial Warm Amber Glow (Matches App Hero Glow) -->
+    <radialGradient id="ambientGlow" cx="50%" cy="40%" r="55%">
+      <stop offset="0%" stop-color="#ffbd63" stop-opacity="0.22"/>
+      <stop offset="50%" stop-color="#ff9800" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Metronome Outer Body Gradient (Matches Metronome Panel #2a2722 to #171615) -->
+    <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3a352d"/>
+      <stop offset="40%" stop-color="#26231f"/>
+      <stop offset="100%" stop-color="#171614"/>
+    </linearGradient>
+
+    <!-- Metronome Inner Cavity Gradient (Matches Recessed Studio Display) -->
+    <linearGradient id="innerCavity" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0a0a09"/>
+      <stop offset="100%" stop-color="#161513"/>
+    </linearGradient>
+
+    <!-- Gold Accent Gradient (Matches Play Button & Accent: #ffc36d to #e68825) -->
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffe7a8"/>
+      <stop offset="35%" stop-color="#ffbd63"/>
+      <stop offset="100%" stop-color="#e68825"/>
+    </linearGradient>
+
+    <!-- Gold Metallic Weight Gradient -->
+    <linearGradient id="goldMetal" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fff8e1"/>
+      <stop offset="30%" stop-color="#ffc36d"/>
+      <stop offset="70%" stop-color="#d97718"/>
+      <stop offset="100%" stop-color="#994c06"/>
+    </linearGradient>
+
+    <!-- Pendulum Needle Gradient -->
+    <linearGradient id="needleGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="60%" stop-color="#f4efe6"/>
+      <stop offset="100%" stop-color="#bdb3a4"/>
+    </linearGradient>
+
+    <!-- Soft Drop Shadow Filter -->
+    <filter id="dropShadow" x="-25%" y="-20%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#000000" flood-opacity="0.75"/>
+    </filter>
+
+    <!-- Gold Glow for Weight & Tip -->
+    <filter id="goldGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="0" stdDeviation="10" flood-color="#ffbd63" flood-opacity="0.65"/>
+    </filter>
+
+    <!-- Beat Pulse Glow -->
+    <radialGradient id="pulseGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffbd63" stop-opacity="0.9"/>
+      <stop offset="40%" stop-color="#ffbd63" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#ffbd63" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Full Bleed Studio Background (Ensures flawless display on all PWA launcher shapes: circle, squircle, square) -->
+  <rect width="512" height="512" fill="url(#bgGrad)"/>
+  <rect width="512" height="512" fill="url(#ambientGlow)"/>
+
+  <!-- Subtle Studio Accent Ring (Highlights 512 canvas) -->
+  <rect x="16" y="16" width="480" height="480" rx="96" fill="none" stroke="#ffffff" stroke-opacity="0.06" stroke-width="1.5"/>
+
+  <!-- Metronome Device Group (Safe area centered) -->
+  <g filter="url(#dropShadow)">
+    <!-- Outer Metronome Body Shell -->
+    <!-- Base: y=424, x=130 to 382 (width 252); Top: y=116, x=204 to 308 (width 104) -->
+    <path d="M 214 116
+             L 298 116
+             A 16 16 0 0 1 313 128
+             L 384 402
+             A 20 20 0 0 1 364 424
+             L 148 424
+             A 20 20 0 0 1 128 402
+             L 199 128
+             A 16 16 0 0 1 214 116 Z"
+          fill="url(#bodyGrad)"
+          stroke="#4d4438"
+          stroke-width="3.5"/>
+
+    <!-- Inner Cavity / Recessed Face Plate -->
+    <path d="M 226 146
+             L 286 146
+             A 10 10 0 0 1 296 154
+             L 352 380
+             A 12 12 0 0 1 340 394
+             L 172 394
+             A 12 12 0 0 1 160 380
+             L 216 154
+             A 10 10 0 0 1 226 146 Z"
+          fill="url(#innerCavity)"
+          stroke="#1e1c19"
+          stroke-width="2.5"/>
+
+    <!-- Scale Central Guide Line -->
+    <line x1="256" y1="162" x2="256" y2="374" stroke="#2d2924" stroke-width="2" stroke-dasharray="3 6"/>
+
+    <!-- Tempo Scale Calibration Ticks (in App Amber/Gold Theme) -->
+    <g stroke="#ffbd63" stroke-width="2.5" stroke-linecap="round">
+      <!-- 208 BPM (Presto) -->
+      <line x1="238" y1="184" x2="249" y2="184" stroke-opacity="0.35"/>
+      <line x1="263" y1="184" x2="274" y2="184" stroke-opacity="0.35"/>
+
+      <!-- 160 BPM (Allegro) -->
+      <line x1="232" y1="220" x2="247" y2="220" stroke-opacity="0.5"/>
+      <line x1="265" y1="220" x2="280" y2="220" stroke-opacity="0.5"/>
+
+      <!-- 120 BPM (Moderato) -->
+      <line x1="224" y1="258" x2="244" y2="258" stroke-opacity="0.65"/>
+      <line x1="268" y1="258" x2="288" y2="258" stroke-opacity="0.65"/>
+
+      <!-- 84 BPM (Andante) -->
+      <line x1="216" y1="296" x2="241" y2="296" stroke-opacity="0.75"/>
+      <line x1="271" y1="296" x2="296" y2="296" stroke-opacity="0.75"/>
+
+      <!-- 60 BPM (Adagio) -->
+      <line x1="208" y1="334" x2="238" y2="334" stroke-opacity="0.5"/>
+      <line x1="274" y1="334" x2="304" y2="334" stroke-opacity="0.5"/>
+    </g>
+
+    <!-- Swing Motion Arc (Tempo dynamic path) -->
+    <path d="M 188 104 Q 256 78 324 104" fill="none" stroke="#ffbd63" stroke-opacity="0.3" stroke-width="3.5" stroke-dasharray="5 9" stroke-linecap="round"/>
+
+    <!-- Swinging Pendulum Needle (Angled at 17° to the right) -->
+    <g transform="rotate(17, 256, 378)">
+      <!-- Needle Rod Shadow & Body -->
+      <line x1="256" y1="378" x2="256" y2="92" stroke="url(#needleGrad)" stroke-width="7" stroke-linecap="round"/>
+      <line x1="254.5" y1="376" x2="254.5" y2="95" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+
+      <!-- Sliding Tempo Weight (Gold Bob) -->
+      <g filter="url(#goldGlow)">
+        <!-- Weight trapezoid body -->
+        <path d="M 232 196
+                 L 280 196
+                 A 3 3 0 0 1 283 200
+                 L 287 240
+                 A 3 3 0 0 1 284 243
+                 L 228 243
+                 A 3 3 0 0 1 225 240
+                 L 229 200
+                 A 3 3 0 0 1 232 196 Z"
+              fill="url(#goldMetal)"
+              stroke="#ffeebf"
+              stroke-width="1.8"/>
+
+        <!-- Horizontal adjustment bar -->
+        <line x1="237" y1="219" x2="275" y2="219" stroke="#4a2200" stroke-width="3" stroke-linecap="round"/>
+        <line x1="237" y1="220.5" x2="275" y2="220.5" stroke="#ffe7a8" stroke-width="1.2" stroke-linecap="round"/>
+
+        <!-- Center Locking Nut / Thumb Screw -->
+        <circle cx="256" cy="219.5" r="5" fill="#241201" stroke="#ffe7a8" stroke-width="1.6"/>
+        <circle cx="256" cy="219.5" r="2" fill="#ffbd63"/>
+      </g>
+
+      <!-- Active Beat Indicator Glow & Tip (Pulse point matching app's active beat) -->
+      <circle cx="256" cy="92" r="16" fill="url(#pulseGlow)"/>
+      <circle cx="256" cy="92" r="6" fill="#ffc36d" stroke="#ffffff" stroke-width="2" filter="url(#goldGlow)"/>
+      <circle cx="256" cy="92" r="2.5" fill="#ffffff"/>
+    </g>
+
+    <!-- Bottom Pivot Mechanism -->
+    <circle cx="256" cy="378" r="18" fill="#171614" stroke="#423a2f" stroke-width="3.5"/>
+    <circle cx="256" cy="378" r="11" fill="url(#goldGrad)" stroke="#ffe7a8" stroke-width="1.8"/>
+    <circle cx="256" cy="378" r="4.5" fill="#241201"/>
+
+    <!-- Metronome Bottom Base Rim / Feet -->
+    <rect x="140" y="414" width="232" height="16" rx="6" fill="url(#bodyGrad)" stroke="#423b30" stroke-width="2"/>
+    <rect x="164" y="430" width="32" height="10" rx="4" fill="#0d0c0b"/>
+    <rect x="316" y="430" width="32" height="10" rx="4" fill="#0d0c0b"/>
+
+    <!-- Gold Brand Emblem on Base (Matches App Studio Tool Branding) -->
+    <rect x="224" y="418" width="64" height="8" rx="4" fill="url(#goldGrad)" stroke="#ffe7a8" stroke-width="1"/>
+  </g>
+</svg>
