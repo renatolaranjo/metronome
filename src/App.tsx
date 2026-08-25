@@ -661,6 +661,10 @@ function App() {
             </div>
           </details>
         </div>
+
+        <footer className="app-version" aria-label={`Version ${__APP_VERSION__}`}>
+          v{__APP_VERSION__}
+        </footer>
       </section>
     </main>
   )
