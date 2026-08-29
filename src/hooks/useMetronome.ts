@@ -7,6 +7,7 @@ import {
   resizeSubdivisionPattern,
 } from '../music/rhythm'
 import type {
+  MetronomePreset,
   NoteValue,
   SubdivisionPattern,
   TimeSignature,
@@ -14,31 +15,47 @@ import type {
 
 const metronome = new MetronomeEngine()
 
-export function useMetronome() {
-  const [bpm, setBpm] = useState(80)
+export function useMetronome(initialPreset?: MetronomePreset) {
+  const [bpm, setBpm] = useState(initialPreset?.bpm ?? 80)
   const [isPlaying, setIsPlaying] = useState(false)
 
   const [timeSignature, setTimeSignature] = useState<TimeSignature>({
-    numerator: 4,
-    denominator: 4,
+    numerator: initialPreset?.timeSignature.numerator ?? 4,
+    denominator: initialPreset?.timeSignature.denominator ?? 4,
   })
-  const [beatUnit, setBeatUnit] = useState<NoteValue>('quarter')
-  const [subdivisions, setSubdivisions] = useState(1)
+  const [beatUnit, setBeatUnit] = useState<NoteValue>(
+    initialPreset?.beatUnit ?? 'quarter',
+  )
+  const [subdivisions, setSubdivisions] = useState(
+    initialPreset?.subdivisions ?? 1,
+  )
   const [subdivisionPattern, setSubdivisionPattern] =
-    useState<SubdivisionPattern>(() => createDefaultSubdivisionPattern(1))
+    useState<SubdivisionPattern>(
+      () => initialPreset?.subdivisionPattern ?? createDefaultSubdivisionPattern(1),
+    )
 
   const [currentBeat, setCurrentBeat] = useState(0)
   const [currentSubdivision, setCurrentSubdivision] = useState(0)
   const [currentMeasure, setCurrentMeasure] = useState(0)
 
-  const [progressiveEnabled, setProgressiveEnabled] = useState(false)
-  const [increaseBy, setIncreaseBy] = useState(2)
-  const [increaseEveryMeasures, setIncreaseEveryMeasures] = useState(4)
-  const [maxBpm, setMaxBpm] = useState(120)
+  const [progressiveEnabled, setProgressiveEnabled] = useState(
+    initialPreset?.progressiveEnabled ?? false,
+  )
+  const [increaseBy, setIncreaseBy] = useState(initialPreset?.increaseBy ?? 2)
+  const [increaseEveryMeasures, setIncreaseEveryMeasures] = useState(
+    initialPreset?.increaseEveryMeasures ?? 4,
+  )
+  const [maxBpm, setMaxBpm] = useState(initialPreset?.maxBpm ?? 120)
 
-  const [trainingEnabled, setTrainingEnabled] = useState(false)
-  const [audibleMeasures, setAudibleMeasures] = useState(4)
-  const [silentMeasures, setSilentMeasures] = useState(2)
+  const [trainingEnabled, setTrainingEnabled] = useState(
+    initialPreset?.trainingEnabled ?? false,
+  )
+  const [audibleMeasures, setAudibleMeasures] = useState(
+    initialPreset?.audibleMeasures ?? 4,
+  )
+  const [silentMeasures, setSilentMeasures] = useState(
+    initialPreset?.silentMeasures ?? 2,
+  )
   const [, setTapTimes] = useState<number[]>([])
 
   const beatsPerMeasure = useMemo(

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import './App.css'
 import {
   NOTE_VALUES,
@@ -12,6 +12,10 @@ import type {
   TickState,
 } from './types/metronome'
 import { useMetronome } from './hooks/useMetronome'
+import {
+  createSharedPresetUrl,
+  getSharedPresetFromUrl,
+} from './sharing/sharedPreset'
 
 const tickStateLabels: Record<TickState, string> = {
   accent: 'Accent',
@@ -70,6 +74,12 @@ function NoteSymbol({ value }: { value: NoteValue }) {
 }
 
 function App() {
+  const sharedPresetLoad = useMemo(
+    () => getSharedPresetFromUrl(new URL(window.location.href)),
+    [],
+  )
+  const sharedPreset =
+    sharedPresetLoad.status === 'loaded' ? sharedPresetLoad.preset : undefined
   const {
     bpm,
     isPlaying,
@@ -113,7 +123,7 @@ function App() {
     setSilentMeasures,
 
     tapTempo,
-  } = useMetronome()
+  } = useMetronome(sharedPreset)
 
   const [presets, setPresets] = useState<MetronomePreset[]>(() => {
     const savedPresets = localStorage.getItem('metronome-presets')
@@ -126,8 +136,9 @@ function App() {
       normalizePreset,
     )
   })
-  const [presetName, setPresetName] = useState('')
+  const [presetName, setPresetName] = useState(sharedPreset?.name ?? '')
   const [selectedPresetId, setSelectedPresetId] = useState<string>('')
+  const [shareFeedback, setShareFeedback] = useState<string | null>(null)
   const hasPresetName = presetName.trim().length > 0
   const hasDuplicatePresetName =
     hasPresetName &&
@@ -172,6 +183,42 @@ function App() {
       trainingEnabled,
       audibleMeasures,
       silentMeasures,
+    }
+  }
+
+  function showShareFeedback(message: string) {
+    setShareFeedback(message)
+    window.setTimeout(() => setShareFeedback(null), 2400)
+  }
+
+  async function shareExercise() {
+    const name = presetName.trim()
+    const sharedUrl = createSharedPresetUrl(
+      createPreset(name),
+      window.location.href,
+    )
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: name || 'Metronome exercise',
+          text: name ? `Metronome exercise: ${name}` : 'Metronome exercise',
+          url: sharedUrl,
+        })
+        showShareFeedback('Shared')
+        return
+      } catch (error) {
+        if (isAbortError(error)) {
+          return
+        }
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(sharedUrl)
+      showShareFeedback('Link copied')
+    } catch {
+      showShareFeedback('Link could not be copied')
     }
   }
 
@@ -271,6 +318,10 @@ function App() {
     }
   }
 
+  function isAbortError(error: unknown) {
+    return error instanceof DOMException && error.name === 'AbortError'
+  }
+
   return (
     <main className="app-shell">
       <section className={`metronome-panel ${isPlaying ? 'is-playing' : ''}`}>
@@ -297,6 +348,19 @@ function App() {
             </select>
           </label>
         </header>
+
+        {sharedPresetLoad.status === 'loaded' && sharedPresetLoad.preset.name && (
+          <div className="shared-preset-notice" role="status">
+            <span>Shared exercise</span>
+            <strong>{sharedPresetLoad.preset.name}</strong>
+          </div>
+        )}
+
+        {sharedPresetLoad.status === 'invalid' && (
+          <div className="shared-preset-notice is-error" role="status">
+            This shared preset could not be loaded.
+          </div>
+        )}
 
         <div className="tempo-stage">
           <p className={`measure-counter ${isPlaying ? 'is-running' : ''}`}>
@@ -657,6 +721,22 @@ function App() {
                 >
                   Delete preset
                 </button>
+              </div>
+
+              <div className="share-row">
+                <button
+                  className="secondary-action share-action"
+                  type="button"
+                  onClick={shareExercise}
+                >
+                  Share exercise
+                </button>
+
+                {shareFeedback && (
+                  <p className="share-feedback" role="status">
+                    {shareFeedback}
+                  </p>
+                )}
               </div>
             </div>
           </details>
