@@ -12,6 +12,7 @@ import type {
   TickState,
 } from './types/metronome'
 import { useMetronome } from './hooks/useMetronome'
+import { useScreenWakeLock } from './hooks/useScreenWakeLock'
 import {
   createSharedPresetUrl,
   getSharedPresetFromUrl,
@@ -124,6 +125,7 @@ function App() {
 
     tapTempo,
   } = useMetronome(sharedPreset)
+  useScreenWakeLock(isPlaying)
 
   const [presets, setPresets] = useState<MetronomePreset[]>(() => {
     const savedPresets = localStorage.getItem('metronome-presets')
@@ -429,16 +431,21 @@ function App() {
             <div className="meter-controls">
               <label>
                 <span>Numerator</span>
-                <input
+                <select
                   aria-label="Time signature numerator"
-                  type="number"
-                  min={1}
-                  max={64}
                   value={timeSignature.numerator}
                   onChange={(event) =>
                     changeBeatsPerMeasure(Number(event.target.value))
                   }
-                />
+                >
+                  {Array.from({ length: 64 }, (_, index) => index + 1).map(
+                    (numerator) => (
+                      <option key={numerator} value={numerator}>
+                        {numerator}
+                      </option>
+                    ),
+                  )}
+                </select>
               </label>
 
               <label>

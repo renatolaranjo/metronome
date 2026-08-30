@@ -33,7 +33,7 @@ describe('App', () => {
     expect(screen.getByRole('heading', { name: 'Metronome' })).toBeVisible()
     expect(screen.getByRole('heading', { name: '80 BPM' })).toBeVisible()
     expect(screen.getByRole('button', { name: 'Start' })).toBeEnabled()
-    expect(screen.getByLabelText('Time signature numerator')).toHaveValue(4)
+    expect(screen.getByLabelText('Time signature numerator')).toHaveValue('4')
     expect(screen.getByLabelText('Time signature denominator')).toHaveValue('4')
     expect(screen.getByRole('radio', { name: 'Quarter note' })).toHaveAttribute(
       'aria-checked',
@@ -144,7 +144,7 @@ describe('App', () => {
     await user.selectOptions(screen.getByLabelText('Preset'), 'preset-1')
 
     expect(screen.getByRole('heading', { name: '81 BPM' })).toBeVisible()
-    expect(screen.getByLabelText('Time signature numerator')).toHaveValue(7)
+    expect(screen.getByLabelText('Time signature numerator')).toHaveValue('7')
     expect(screen.getByLabelText('Time signature denominator')).toHaveValue('8')
     expect(screen.getByRole('radio', { name: 'Eighth note' })).toHaveAttribute(
       'aria-checked',
@@ -228,7 +228,7 @@ describe('App', () => {
     await user.selectOptions(screen.getByLabelText('Preset'), 'old-preset')
 
     expect(screen.getByRole('heading', { name: '90 BPM' })).toBeVisible()
-    expect(screen.getByLabelText('Time signature numerator')).toHaveValue(3)
+    expect(screen.getByLabelText('Time signature numerator')).toHaveValue('3')
     expect(screen.getByLabelText('Time signature denominator')).toHaveValue('4')
     expect(screen.getByRole('button', { name: 'Subdivision 1: Accent' })).toBeVisible()
     expect(screen.getByRole('button', { name: 'Subdivision 2: Normal' })).toBeVisible()
